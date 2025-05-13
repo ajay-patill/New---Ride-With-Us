@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RideWithUs</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #2C3E50, #34495E);
+      color: #333333;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+    }
+    .container {
+      max-width: 90%;
+      margin: 20px auto;
+      padding: 20px;
+      background: #F8F9FA;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    h1 {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      text-align: center;
+      color: #2C3E50;
+      font-size: 2.2em;
+      font-weight: 600;
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+    h2 {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #F1C40F;
+      font-size: 1.6em;
+      font-weight: 600;
+      margin: 20px 0 10px;
+      letter-spacing: 0.02em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      width: 100%;
+    }
+    input, button {
+      padding: 14px;
+      border: 1px solid #333333;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 1em;
+      font-weight: 400;
+    }
+    input {
+      width: 100%;
+      flex: 1;
+      background: #FFFFFF;
+    }
+    input::placeholder {
+      color: #666666;
+    }
+    input:focus {
+      outline: none;
+      border-color: #F1C40F;
+      box-shadow: 0 0 4px rgba(241, 196, 15, 0.5);
+    }
+    button {
+      background-color: #2C3E50;
+      color: #F8F9FA;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+      min-height: 55px;
+      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #2C3E50, #34495E);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    button:disabled {
+      background-color: #666666;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .map-btn {
+      background-color: #34495E;
+      width: auto;
+      padding: 12px 16px;
+      font-size: 0.95em;
+    }
+    .map-btn:hover {
+      background-color: #2C3E50;
+    }
+    .error {
+      color: #C0392B;
+      font-size: 0.9em;
+      margin-top: 5px;
+      text-align: center;
+      width: 100%;
+    }
+    .success {
+      color: #F1C40F;
+      font-size: 0.9em;
+      margin-top: 5px;
+      text-align: center;
+      width: 100%;
+    }
+    .ride {
+      border: 1px solid #333333;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      background: #FFFFFF;
+    }
+    .hidden {
+      display: none;
+    }
+    #riderBtn {
+      background-color: #2C3E50;
+    }
+    #riderBtn:hover {
+      background: linear-gradient(135deg, #2C3E50, #34495E);
+    }
+    #passengerBtn {
+      background-color: #34495E;
+    }
+    #passengerBtn:hover {
+      background: linear-gradient(135deg, #34495E, #2C3E50);
+    }
+    #ambulanceBtn {
+      background-color: #C0392B;
+    }
+    #ambulanceBtn:hover {
+      background: linear-gradient(135deg, #C0392B, #A93226);
+    }
+    .landing-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin: 40px 0;
+    }
+    .landing-buttons button {
+      padding: 16px;
+      font-size: 1.2em;
+      border-radius: 6px;
+      width: 200px;
+      min-height: 60px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .action-buttons button {
+      width: calc(50% - 5px);
+      min-height: 55px;
+    }
+    .sos-btn {
+      background-color: #C0392B;
+    }
+    .sos-btn:hover {
+      background: linear-gradient(135deg, #C0392B, #A93226);
+    }
+    .search-btn {
+      background-color: #34495E;
+    }
+    .search-btn:hover {
+      background: linear-gradient(135deg, #34495E, #2C3E50);
+    }
+    .stats {
+      text-align: center;
+      font-size: 1.1em;
+      margin: 20px 0;
+      font-weight: 500;
+    }
+    .info-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #F1C40F;
+      border-radius: 6px;
+      background: #FFFFFF;
+    }
+    .info-section p {
+      margin: 10px 0;
+      font-size: 1em;
+      line-height: 1.5;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #FFFFFF;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 800px;
+      position: relative;
+    }
+    .modal-content h3 {
+      margin: 0 0 10px;
+      color: #2C3E50;
+    }
+    #map, #riderMap, #passengerMap {
+      height: 400px;
+      width: 100%;
+      border-radius: 6px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: #333333;
+    }
+    .select-location-btn {
+      margin-top: 10px;
+      width: 100%;
+      background-color: #F1C40F;
+      color: #2C3E50;
+    }
+    .select-location-btn:hover {
+      background: linear-gradient(135deg, #F1C40F, #F4D03F);
+    }
+    .directions {
+      margin-top: 10px;
+      padding: 15px;
+      background: #FFFFFF;
+      border: 1px solid #333333;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.95em;
+    }
+    .directions p {
+      margin: 5px 0;
+    }
+    .directions:empty {
+      display: none;
+    }
+    @media (max-width: 600px) {
+      .container {
+        max-width: 95%;
+        margin: 10px;
+        padding: 15px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+      h2 {
+        font-size: 1.4em;
+      }
+      .landing-buttons button {
+        width: 100%;
+        max-width: 280px;
+        font-size: 1.1em;
+        padding: 14px;
+      }
+      .action-buttons {
+        flex-direction: column;
+      }
+      .action-buttons button {
+        width: 100%;
+      }
+      .form-group {
+        flex-direction: column;
+      }
+      .map-btn {
+        width: 100%;
+        padding: 12px;
+      }
+      input, button {
+        font-size: 0.95em;
+        padding: 12px;
+      }
+      .info-section {
+        padding: 15px;
+      }
+      .info-section p {
+        font-size: 0.95em;
+      }
+      body {
+        font-size: 0.95em;
+      }
+      .modal-content {
+        width: 95%;
+        padding: 15px;
+      }
+      #map, #riderMap, #passengerMap {
+        height: 300px;
+      }
+      .directions {
+        max-height: 150px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="landingScreen">
+      <h1>RideWithUs</h1>
+      <p style="text-align: center; font-size: 1.1em; font-weight: 500;">Effortless Travel, Seamless Connections</p>
+      <div class="landing-buttons">
+        <button id="riderBtn">Rider</button>
+        <button id="passengerBtn">Passenger</button>
+        <button id="ambulanceBtn">Ambulance</button>
+      </div>
+      <div class="stats">Active Rides: <span id="activeRides">0</span></div>
+      <div class="info-section">
+        <h2>Why Choose Us</h2>
+        <p>RideWithUs delivers a premium ride-sharing experience with flexible pricing and unmatched reliability. Connect with trusted riders, reduce travel costs, and support sustainable mobility.</p>
+        <p>Our advanced emergency response system, including instant SOS alerts, ensures your safety at all times.</p>
+      </div>
+      <div class="info-section">
+        <h2>How We Save Time</h2>
+        <p>Discover rides effortlessly with our intuitive search and streamlined route posting. Select locations directly from an interactive OpenStreetMap, minimizing planning time.</p>
+        <p>Our optimized matching algorithm connects you with riders quickly, getting you to your destination faster.</p>
+      </div>
+    </div>
+
+    <div id="riderScreen" class="hidden">
+      <h1>RideWithUs: Rider Dashboard</h1>
+      <div class="action-buttons">
+        <button onclick="showScreen('landingScreen')">Back</button>
+        <button class="sos-btn" onclick="triggerWebAudioSOS()">SOS</button>
+      </div>
+      <div id="riderMap"></div>
+      <div id="riderDirections" class="directions"></div>
+      <div class="form-group">
+        <label for="riderStart">Starting Location</label>
+        <input type="text" id="riderStart" placeholder="e.g., Hebbal">
+        <button class="map-btn" onclick="openMap('riderStart')">Select on Map</button>
+      </div>
+      <div class="form-group">
+        <label for="riderEnd">Destination</label>
+        <input type="text" id="riderEnd" placeholder="e.g., Vidyanagar">
+        <button class="map-btn" onclick="openMap('riderEnd')">Select on Map</button>
+      </div>
+      <div class="form-group">
+        <label for="riderPrice">Ride Price (₹)</label>
+        <input type="number" id="riderPrice" step="1" min="1" placeholder="e.g., 150">
+      </div>
+      <div id="riderError" class="error"></div>
+      <div id="riderSuccess" class="success"></div>
+      <button onclick="postRide()">List Ride</button>
+      <div class="stats">Active Rides: <span id="riderActiveRides">0</span></div>
+    </div>
+
+    <div id="passengerScreen" class="hidden">
+      <h1>RideWithUs: Find a Ride</h1>
+      <div class="action-buttons">
+        <button onclick="showScreen('landingScreen')">Back</button>
+        <button class="sos-btn" onclick="triggerWebAudioSOS()">SOS</button>
+      </div>
+      <div class="form-group">
+        <label for="passengerStart">Desired Start Location</label>
+        <input type="text" id="passengerStart" placeholder="e.g., Hebbal">
+        <button class="map-btn" onclick="openMap('passengerStart')">Select on Map</button>
+      </div>
+      <div class="form-group">
+        <label for="passengerDestination">Desired Destination</label>
+        <input type="text" id="passengerDestination" placeholder="e.g., Vidyanagar">
+        <button class="map-btn" onclick="openMap('passengerDestination')">Select on Map</button>
+      </div>
+      <h2>Rides Near You</h2>
+      <div id="passengerMap"></div>
+      <div id="passengerDirections" class="directions"></div>
+      <div id="rideList"></div>
+      <div id="passengerError" class="error"></div>
+      <div id="passengerSuccess" class="success"></div>
+      <button class="search-btn" onclick="searchRides()">Find Rides</button>
+      <div class="stats">Active Rides: <span id="passengerActiveRides">0</span></div>
+    </div>
+
+    <div id="ambulanceScreen" class="hidden">
+      <h1>RideWithUs: Ambulance Dashboard</h1>
+      <div class="action-buttons">
+        <button onclick="showScreen('landingScreen')">Back</button>
+        <button class="sos-btn" onclick="triggerWebAudioSOS()">SOS</button>
+      </div>
+      <div class="form-group">
+        <label for="ambulanceStart">Origin</label>
+        <input type="text" id="ambulanceStart" placeholder="e.g., Apollo Hospital">
+        <button class="map-btn" onclick="openMap('ambulanceStart')">Select on Map</button>
+      </div>
+      <div class="form-group">
+        <label for="ambulanceEnd">Destination</label>
+        <input type="text" id="ambulanceEnd" placeholder="e.g., Lilavati Hospital">
+        <button class="map-btn" onclick="openMap('ambulanceEnd')">Select on Map</button>
+      </div>
+      <div id="ambulanceError" class="error"></div>
+      <div id="ambulanceSuccess" class="success"></div>
+      <button id="ambulanceBtn" class="sos-btn" onclick="postAmbulance()">Dispatch Emergency Route</button>
+      <div class="stats">Active Rides: <span id="ambulanceActiveRides">0</span></div>
+    </div>
+  </div>
+
+  <div id="mapModal" class="modal">
+    <div class="modal-content">
+      <h3>Select Location</h3>
+      <button class="close-btn" onclick="closeMapModal()">×</button>
+      <div id="map"></div>
+      <button class="select-location-btn" onclick="selectLocation()">Select This Location</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <script>
+    let rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    let bookings = [];
+    let rideIdCounter = rides.length ? Math.max(...rides.map(r => parseInt(r._id.split('-')[1]))) + 1 : 1;
+    let bookingIdCounter = 1;
+    let currentUser = null;
+    let map, marker, riderMap, passengerMap;
+    let selectedInputId = null;
+    let startLatLng = [12.9716, 77.5946]; // Default: Bangalore
+    let endLatLng = [12.9716, 77.5946];
+    let passengerStartLatLng = [12.9716, 77.5946];
+    let passengerEndLatLng = [12.9716, 77.5946];
+    let ambulanceStartLatLng = [12.9716, 77.5946];
+    let ambulanceEndLatLng = [12.9716, 77.5946];
+    let passengerMapUpdateInterval = null;
+    let riderRoutingControl = null;
+    let currentRideId = null;
+
+    function escapeJsString(str) {
+      return str.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('riderBtn').addEventListener('click', () => selectRole('Rider'));
+      document.getElementById('passengerBtn').addEventListener('click', () => selectRole('Passenger'));
+      document.getElementById('ambulanceBtn').addEventListener('click', () => selectRole('Ambulance'));
+    });
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+      updateActiveRides();
+      if (screenId === 'riderScreen') {
+        initRiderMap();
+      } else if (screenId === 'passengerScreen') {
+        initPassengerMap();
+        passengerMapUpdateInterval = setInterval(updatePassengerRides, 2000);
+      } else {
+        if (passengerMapUpdateInterval) {
+          clearInterval(passengerMapUpdateInterval);
+          passengerMapUpdateInterval = null;
+        }
+      }
+    }
+
+    function selectRole(role) {
+      currentUser = { id: `user-${Date.now()}`, role };
+      showScreen(role === 'Rider' ? 'riderScreen' : role === 'Passenger' ? 'passengerScreen' : 'ambulanceScreen');
+    }
+
+    function triggerWebAudioSOS() {
+      const successDivs = document.querySelectorAll('.success');
+      successDivs.forEach(div => div.textContent = 'Emergency services notified!');
+
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playBeep = (count) => {
+          if (count > 10) {
+            ctx.close();
+            window.location.href = 'tel:112';
+            return;
+          }
+          const oscillator = ctx.createOscillator();
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(440, ctx.currentTime);
+          oscillator.connect(ctx.destination);
+          oscillator.start();
+          oscillator.stop(ctx.currentTime + 0.5);
+          setTimeout(() => playBeep(count + 1), 700);
+        };
+        playBeep(1);
+      } catch (e) {
+        console.warn('Web Audio API not supported:', e);
+        alert('Emergency services notified!');
+        window.location.href = 'tel:112';
+      }
+    }
+
+    function openMap(inputId) {
+      selectedInputId = inputId;
+      const modal = document.getElementById('mapModal');
+      modal.style.display = 'flex';
+
+      if (!map) {
+        map = L.map('map').setView([12.9716, 77.5946], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        marker = L.marker([12.9716, 77.5946]).addTo(map);
+        map.on('click', function(e) {
+          if (inputId === 'riderStart') {
+            startLatLng = [e.latlng.lat, e.latlng.lng];
+          } else if (inputId === 'riderEnd') {
+            endLatLng = [e.latlng.lat, e.latlng.lng];
+          } else if (inputId === 'passengerStart') {
+            passengerStartLatLng = [e.latlng.lat, e.latlng.lng];
+          } else if (inputId === 'passengerDestination') {
+            passengerEndLatLng = [e.latlng.lat, e.latlng.lng];
+          } else if (inputId === 'ambulanceStart') {
+            ambulanceStartLatLng = [e.latlng.lat, e.latlng.lng];
+          } else if (inputId === 'ambulanceEnd') {
+            ambulanceEndLatLng = [e.latlng.lat, e.latlng.lng];
+          }
+          marker.setLatLng(e.latlng);
+          reverseGeocode(e.latlng.lat, e.latlng.lng);
+          if (inputId === 'riderStart' || inputId === 'riderEnd') {
+            updateRiderRoute();
+          }
+        });
+      } else {
+        const coords = inputId.includes('passenger') ? passengerStartLatLng :
+                      inputId.includes('ambulance') ? ambulanceStartLatLng : startLatLng;
+        map.setView(coords, 13);
+        marker.setLatLng(coords);
+      }
+    }
+
+    function closeMapModal() {
+      document.getElementById('mapModal').style.display = 'none';
+    }
+
+    async function reverseGeocode(lat, lng) {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+        );
+        const data = await response.json();
+        const address = data.display_name || `${lat}, ${lng}`;
+        if (selectedInputId) {
+          document.getElementById(selectedInputId).value = address;
+        }
+      } catch (e) {
+        console.warn('Reverse geocoding failed:', e);
+        if (selectedInputId) {
+          document.getElementById(selectedInputId).value = `${lat}, ${lng}`;
+        }
+      }
+    }
+
+    function selectLocation() {
+      let lat, lng;
+      if (selectedInputId.includes('passenger')) {
+        const coords = selectedInputId === 'passengerStart' ? passengerStartLatLng : passengerEndLatLng;
+        lat = Array.isArray(coords) ? coords[0] : 12.9716;
+        lng = Array.isArray(coords) ? coords[1] : 77.5946;
+      } else if (selectedInputId.includes('ambulance')) {
+        const coords = selectedInputId === 'ambulanceStart' ? ambulanceStartLatLng : ambulanceEndLatLng;
+        lat = Array.isArray(coords) ? coords[0] : 12.9716;
+        lng = Array.isArray(coords) ? coords[1] : 77.5946;
+      } else {
+        const coords = selectedInputId === 'riderStart' ? startLatLng : endLatLng;
+        lat = Array.isArray(coords) ? coords[0] : 12.9716;
+        lng = Array.isArray(coords) ? coords[1] : 77.5946;
+      }
+      reverseGeocode(lat, lng);
+      closeMapModal();
+      if (selectedInputId === 'riderStart' || selectedInputId === 'riderEnd') {
+        updateRiderRoute();
+      }
+    }
+
+    function initRiderMap() {
+      if (!riderMap) {
+        riderMap = L.map('riderMap').setView([12.9716, 77.5946], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(riderMap);
+      }
+
+      riderMap.eachLayer(layer => {
+        if (layer instanceof L.Routing.Control || layer instanceof L.Marker || layer instanceof L.Polyline) {
+          riderMap.removeLayer(layer);
+        }
+      });
+
+      rides.filter(r => r.status === 'active' && r.type === 'emergency').forEach(ride => {
+        if (ride.startPoint.latLng && ride.endPoint.latLng) {
+          const routingControl = L.Routing.control({
+            waypoints: [
+              L.latLng(ride.startPoint.latLng),
+              L.latLng(ride.endPoint.latLng)
+            ],
+            routeWhileDragging: false,
+            show: false,
+            createMarker: () => null,
+            lineOptions: {
+              styles: [{ color: '#C0392B', weight: 4 }]
+            },
+            addWaypoints: false
+          }).addTo(riderMap);
+
+          routingControl.on('routesfound', function(e) {
+            const route = e.routes[0];
+            L.polyline(route.coordinates, { color: '#C0392B', weight: 4 }).addTo(riderMap);
+            L.marker(ride.startPoint.latLng)
+              .addTo(riderMap)
+              .bindPopup(`Emergency Route Start: ${ride.startPoint.name}`);
+            L.marker(ride.endPoint.latLng)
+              .addTo(riderMap)
+              .bindPopup(`Emergency Route End: ${ride.endPoint.name}`);
+          });
+        }
+      });
+
+      updateRiderRoute();
+    }
+
+    function updateRiderRoute() {
+      if (riderMap && startLatLng && endLatLng) {
+        if (riderRoutingControl) {
+          riderMap.removeControl(riderRoutingControl);
+        }
+
+        riderRoutingControl = L.Routing.control({
+          waypoints: [
+            L.latLng(startLatLng),
+            L.latLng(endLatLng)
+          ],
+          routeWhileDragging: false,
+          show: false,
+          createMarker: () => null,
+          lineOptions: {
+            styles: [{ color: '#F1C40F', weight: 4 }]
+          },
+          addWaypoints: false
+        }).addTo(riderMap);
+
+        riderRoutingControl.on('routesfound', function(e) {
+          const route = e.routes[0];
+          L.polyline(route.coordinates, { color: '#F1C40F', weight: 4 }).addTo(riderMap);
+          L.marker(startLatLng).addTo(riderMap).bindPopup(document.getElementById('riderStart').value || 'Start');
+          L.marker(endLatLng).addTo(riderMap).bindPopup(document.getElementById('riderEnd').value || 'End');
+          riderMap.fitBounds([startLatLng, endLatLng]);
+
+          const directionsDiv = document.getElementById('riderDirections');
+          directionsDiv.innerHTML = '';
+          route.instructions.forEach((instruction, index) => {
+            const p = document.createElement('p');
+            p.textContent = `${index + 1}. ${instruction.text} (${(instruction.distance / 1000).toFixed(1)} km)`;
+            directionsDiv.appendChild(p);
+          });
+        });
+      }
+    }
+
+    function initPassengerMap() {
+      if (!passengerMap) {
+        passengerMap = L.map('passengerMap').setView([12.9716, 77.5946], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(passengerMap);
+      }
+
+      passengerMap.eachLayer(layer => {
+        if (layer instanceof L.Routing.Control || layer instanceof L.Marker || layer instanceof L.Polyline) {
+          passengerMap.removeLayer(layer);
+        }
+      });
+
+      const directionsDiv = document.getElementById('passengerDirections');
+      directionsDiv.innerHTML = '';
+
+      rides.filter(r => r.status === 'active').forEach(ride => {
+        if (ride.startPoint.latLng && ride.endPoint.latLng) {
+          const isEmergency = ride.type === 'emergency';
+          const lineColor = isEmergency ? '#C0392B' : '#F1C40F';
+          const routingControl = L.Routing.control({
+            waypoints: [
+              L.latLng(ride.startPoint.latLng),
+              L.latLng(ride.endPoint.latLng)
+            ],
+            routeWhileDragging: false,
+            show: false,
+            createMarker: () => null,
+            lineOptions: {
+              styles: [{ color: lineColor, weight: 4 }]
+            },
+            addWaypoints: false
+          }).addTo(passengerMap);
+
+          routingControl.on('routesfound', function(e) {
+            const route = e.routes[0];
+            const polyline = L.polyline(route.coordinates, { color: lineColor, weight: 4 })
+              .addTo(passengerMap)
+              .on('click', function(e) {
+                if (!isEmergency) {
+                  passengerStartLatLng = [e.latlng.lat, e.latlng.lng];
+                  reverseGeocode(e.latlng.lat, e.latlng.lng);
+                  document.getElementById('passengerStart').value = `${e.latlng.lat}, ${e.latlng.lng}`;
+                  polyline.on('click', function(e2) {
+                    passengerEndLatLng = [e2.latlng.lat, e2.latlng.lng];
+                    reverseGeocode(e2.latlng.lat, e2.latlng.lng);
+                    document.getElementById('passengerDestination').value = `${e2.latlng.lat}, ${e2.latlng.lng}`;
+                  });
+                }
+
+                directionsDiv.innerHTML = '';
+                if (ride.instructions && Array.isArray(ride.instructions)) {
+                  ride.instructions.forEach((instruction, index) => {
+                    const p = document.createElement('p');
+                    p.textContent = `${index + 1}. ${instruction.text} (${(instruction.distance / 1000).toFixed(1)} km)`;
+                    directionsDiv.appendChild(p);
+                  });
+                } else {
+                  directionsDiv.innerHTML = '<p>No directions available for this route.</p>';
+                }
+                currentRideId = ride._id;
+              });
+
+            const escapedStartName = escapeJsString(ride.startPoint.name);
+            const escapedEndName = escapeJsString(ride.endPoint.name);
+            const popupPrefix = isEmergency ? 'Emergency Route Start: ' : '';
+
+            L.marker(ride.startPoint.latLng)
+              .addTo(passengerMap)
+              .bindPopup(`${popupPrefix}${ride.startPoint.name}${isEmergency ? '' : '<br><button onclick="selectPassengerStart(' + ride.startPoint.latLng[0] + ',' + ride.startPoint.latLng[1] + ',\'' + escapedStartName + '\')">Select as Start</button>'}`)
+              .on('click', function() {
+                directionsDiv.innerHTML = '';
+                if (ride.instructions && Array.isArray(ride.instructions)) {
+                  ride.instructions.forEach((instruction, index) => {
+                    const p = document.createElement('p');
+                    p.textContent = `${index + 1}. ${instruction.text} (${(instruction.distance / 1000).toFixed(1)} km)`;
+                    directionsDiv.appendChild(p);
+                  });
+                } else {
+                  directionsDiv.innerHTML = '<p>No directions available for this route.</p>';
+                }
+                currentRideId = ride._id;
+              });
+
+            L.marker(ride.endPoint.latLng)
+              .addTo(passengerMap)
+              .bindPopup(`${popupPrefix}${ride.endPoint.name}${isEmergency ? '' : '<br><button onclick="selectPassengerEnd(' + ride.endPoint.latLng[0] + ',' + ride.endPoint.latLng[1] + ',\'' + escapedEndName + '\')">Select as End</button>'}`)
+              .on('click', function() {
+                directionsDiv.innerHTML = '';
+                if (ride.instructions && Array.isArray(ride.instructions)) {
+                  ride.instructions.forEach((instruction, index) => {
+                    const p = document.createElement('p');
+                    p.textContent = `${index + 1}. ${instruction.text} (${(instruction.distance / 1000).toFixed(1)} km)`;
+                    directionsDiv.appendChild(p);
+                  });
+                } else {
+                  directionsDiv.innerHTML = '<p>No directions available for this route.</p>';
+                }
+                currentRideId = ride._id;
+              });
+          });
+        }
+      });
+
+      updatePassengerRideList();
+
+      const bounds = rides.filter(r => r.startPoint.latLng && r.endPoint.latLng).map(r => [
+        r.startPoint.latLng,
+        r.endPoint.latLng
+      ]).flat();
+      if (bounds.length) {
+        passengerMap.fitBounds(bounds);
+      }
+    }
+
+    function updatePassengerRideList() {
+      const rideList = document.getElementById('rideList');
+      rideList.innerHTML = '';
+
+      const activeRides = rides.filter(r => r.status === 'active' && r.type !== 'emergency');
+      if (activeRides.length === 0) {
+        rideList.innerHTML = '<p>No rides available near you.</p>';
+        return;
+      }
+
+      activeRides.forEach(ride => {
+        const div = document.createElement('div');
+        div.className = 'ride';
+        div.innerHTML = `
+          <p><strong>Route:</strong> ${ride.startPoint.name} to ${ride.endPoint.name}</p>
+          <p><strong>Price:</strong> ₹${ride.totalPrice}</p>
+          <button onclick="bookRide('${ride._id}', ${ride.totalPrice})">Book Ride</button>
+        `;
+        rideList.appendChild(div);
+      });
+    }
+
+    function updatePassengerRides() {
+      const newRides = JSON.parse(localStorage.getItem('rides') || '[]');
+      if (JSON.stringify(newRides) !== JSON.stringify(rides)) {
+        rides = newRides;
+        updateActiveRides();
+        if (document.getElementById('passengerScreen').classList.contains('hidden') === false) {
+          initPassengerMap();
+        }
+        if (document.getElementById('riderScreen').classList.contains('hidden') === false) {
+          initRiderMap();
+        }
+      }
+    }
+
+    function selectPassengerStart(lat, lng, name) {
+      passengerStartLatLng = [lat, lng];
+      document.getElementById('passengerStart').value = name;
+      reverseGeocode(lat, lng);
+    }
+
+    function selectPassengerEnd(lat, lng, name) {
+      passengerEndLatLng = [lat, lng];
+      document.getElementById('passengerDestination').value = name;
+      reverseGeocode(lat, lng);
+    }
+
+    function updateActiveRides() {
+      const count = rides.filter(r => r.status === 'active').length;
+      document.getElementById('activeRides').textContent = count;
+      document.getElementById('riderActiveRides').textContent = count;
+      document.getElementById('passengerActiveRides').textContent = count;
+      document.getElementById('ambulanceActiveRides').textContent = count;
+    }
+
+    function postRide() {
+      const start = document.getElementById('riderStart').value.trim();
+      const end = document.getElementById('riderEnd').value.trim();
+      const price = parseFloat(document.getElementById('riderPrice').value);
+      const errorDiv = document.getElementById('riderError');
+      const successDiv = document.getElementById('riderSuccess');
+
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+
+      if (!start || !end) {
+        errorDiv.textContent = 'Please provide both start and end locations';
+        return;
+      }
+      if (isNaN(price) || price < 1) {
+        errorDiv.textContent = 'Ride price must be a positive number';
+        return;
+      }
+      if (!startLatLng || !endLatLng) {
+        errorDiv.textContent = 'Please select both locations on the map';
+        return;
+      }
+
+      let instructions = [];
+      if (riderRoutingControl) {
+        const route = riderRoutingControl.getRouter().route[0];
+        if (route && route.instructions) {
+          instructions = route.instructions.map(inst => ({
+            text: inst.text,
+            distance: inst.distance
+          }));
+        }
+      }
+
+      const ride = {
+        _id: `ride-${rideIdCounter++}`,
+        riderId: currentUser.id,
+        startPoint: { name: start, latLng: startLatLng },
+        endPoint: { name: end, latLng: endLatLng },
+        totalPrice: price,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        instructions: instructions,
+        type: 'regular'
+      };
+
+      rides.push(ride);
+      localStorage.setItem('rides', JSON.stringify(rides));
+      successDiv.textContent = `Ride successfully listed at ₹${price}`;
+      document.getElementById('riderStart').value = '';
+      document.getElementById('riderEnd').value = '';
+      document.getElementById('riderPrice').value = '';
+      document.getElementById('riderDirections').innerHTML = '';
+      startLatLng = [12.9716, 77.5946];
+      endLatLng = [12.9716, 77.5946];
+      updateRiderRoute();
+      updateActiveRides();
+    }
+
+    function searchRides() {
+      const start = document.getElementById('passengerStart').value.trim();
+      const destination = document.getElementById('passengerDestination').value.trim();
+      const errorDiv = document.getElementById('passengerError');
+      const successDiv = document.getElementById('passengerSuccess');
+      const rideList = document.getElementById('rideList');
+
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+
+      if (!start || !destination) {
+        errorDiv.textContent = 'Please provide both start and destination';
+        return;
+      }
+
+      const matchedRides = rides.filter(ride =>
+        ride.status === 'active' &&
+        ride.type !== 'emergency' &&
+        (ride.startPoint.name.toLowerCase().includes(start.toLowerCase()) ||
+         ride.endPoint.name.toLowerCase().includes(destination.toLowerCase()))
+      );
+
+      rideList.innerHTML = '';
+      if (matchedRides.length === 0) {
+        errorDiv.textContent = 'No rides found for this route';
+        rideList.innerHTML = '<p>No rides match your search.</p>';
+        return;
+      }
+
+      matchedRides.forEach(ride => {
+        const div = document.createElement('div');
+        div.className = 'ride';
+        div.innerHTML = `
+          <p><strong>Route:</strong> ${ride.startPoint.name} to ${ride.endPoint.name}</p>
+          <p><strong>Price:</strong> ₹${ride.totalPrice}</p>
+          <button onclick="bookRide('${ride._id}', ${ride.totalPrice})">Book Ride</button>
+        `;
+        rideList.appendChild(div);
+      });
+    }
+
+    function bookRide(rideId, totalPrice) {
+      const ride = rides.find(r => r._id === rideId);
+      const errorDiv = document.getElementById('passengerError');
+      const successDiv = document.getElementById('passengerSuccess');
+
+      if (!ride) {
+        errorDiv.textContent = 'Ride not found';
+        return;
+      }
+
+      if (!passengerStartLatLng || !passengerEndLatLng) {
+        errorDiv.textContent = 'Please select start and end points on the map';
+        return;
+      }
+
+      const booking = {
+        _id: `booking-${bookingIdCounter++}`,
+        rideId,
+        passengerId: currentUser.id,
+        startPoint: { name: document.getElementById('passengerStart').value, latLng: passengerStartLatLng },
+        endPoint: { name: document.getElementById('passengerDestination').value, latLng: passengerEndLatLng },
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+      };
+
+      bookings.push(booking);
+      ride.status = 'booked';
+      localStorage.setItem('rides', JSON.stringify(rides));
+      successDiv.textContent = `Ride booked successfully for ₹${totalPrice}`;
+      document.getElementById('passengerDirections').innerHTML = '';
+      currentRideId = null;
+      searchRides();
+      initPassengerMap();
+    }
+
+    function postAmbulance() {
+      const start = document.getElementById('ambulanceStart').value.trim();
+      const end = document.getElementById('ambulanceEnd').value.trim();
+      const errorDiv = document.getElementById('ambulanceError');
+      const successDiv = document.getElementById('ambulanceSuccess');
+
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+
+      if (!start || !end) {
+        errorDiv.textContent = 'Please provide both origin and destination';
+        return;
+      }
+      if (!ambulanceStartLatLng || !ambulanceEndLatLng) {
+        errorDiv.textContent = 'Please select both locations on the map';
+        return;
+      }
+
+      const tempMap = L.map(document.createElement('div'));
+      const routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(ambulanceStartLatLng),
+          L.latLng(ambulanceEndLatLng)
+        ],
+        routeWhileDragging: false,
+        show: false,
+        createMarker: () => null
+      }).addTo(tempMap);
+
+      let instructions = [];
+      routingControl.on('routesfound', function(e) {
+        const route = e.routes[0];
+        instructions = route.instructions.map(inst => ({
+          text: inst.text,
+          distance: inst.distance
+        }));
+
+        const ride = {
+          _id: `ride-${rideIdCounter++}`,
+          riderId: currentUser.id,
+          startPoint: { name: start, latLng: ambulanceStartLatLng },
+          endPoint: { name: end, latLng: ambulanceEndLatLng },
+          totalPrice: 0,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          instructions: instructions,
+          type: 'emergency'
+        };
+
+        rides.push(ride);
+        localStorage.setItem('rides', JSON.stringify(rides));
+        alert(`Emergency vehicle dispatched: From ${start} to ${end}`);
+        successDiv.textContent = 'Emergency route dispatched successfully';
+        document.getElementById('ambulanceStart').value = '';
+        document.getElementById('ambulanceEnd').value = '';
+        ambulanceStartLatLng = [12.9716, 77.5946];
+        ambulanceEndLatLng = [12.9716, 77.5946];
+        updateActiveRides();
+        tempMap.remove();
+      });
+    }
+  </script>
+</body>
+</html>
